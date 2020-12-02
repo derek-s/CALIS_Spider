@@ -35,11 +35,12 @@ if __name__ == "__main__":
 
             if type(result) != int:
                 print("find write db")
+                print(result)
                 collection.insert(result)
-                time.sleep(1)
+                time.sleep(random.randint(3, 15))
             if result == 404:
                 print("notFound")
                 notFoundFile.write(item[0] + "\n")
-                time.sleep(1)
+                time.sleep(random.randint(3, 15))
         else:
             print("in base")
