@@ -1,6 +1,10 @@
 import requests
 import re
+import time
+import random
 from lxml import etree
+
+from captcha import processPassKey
 from ua import UAMaker
 
 calisUrl = ""
@@ -69,6 +73,29 @@ def searchOpac(isbn, passkey, proxy):
         "pageno2": 1,
     }
 
+    checkPayload = {
+        "query": "（bath.isbn=“" + isbn + "*“）",
+        "langBase": "null",
+        "recIndex": 1,
+        "recTotal": 1,
+        "fullTextType": 1,
+        "dbselect": "all",
+        "queryType": 0,
+        "curFullTextType": 1,
+        "langBase4Holding": "null",
+        "fromType4Holding": "null",
+        "oid4Holding": "null",
+        "id": "null",
+        "userid": "null",
+        "fullTextType": 1,
+        "index": "null",
+        "flag": "null",
+        "subact": "check",
+        "targetName": "alertWin",
+        "jsfs6": "---选择地区中心---",
+        "jsfs7": "---选择省中心---"
+    }
+
     s = requests.session()
     if(len(proxy) != 0):
         s.proxies = proxy
@@ -77,7 +104,6 @@ def searchOpac(isbn, passkey, proxy):
     cookies = {"JSESSIONID":passkey}
     requests.utils.add_dict_to_cookiejar(s.cookies,cookies)
     r = s.post(queryUrl, data=queryPayload, headers=headers)
-    print(headers)
     selector = etree.HTML(r.text)
     notFound = selector.xpath("/html/body/table/tr/td/table/form/tr[1]/td/table/tr/td[2]/strong/font/text()")
 
@@ -88,7 +114,7 @@ def searchOpac(isbn, passkey, proxy):
     else:
         if(len(notFound) == 0):
             # result = selector.xpath("/html/body/form[1]/table/tr/td/table/*")
-            result = selector.xpath("/html/body/form[1]/table/tr/td/table/tr[6]/table/  tr/td[2]/div/table[2]/tbody/tr")
+            result = selector.xpath("/html/body/form[1]/table/tr/td/table/tr[6]/table/tr/td[2]/div/table[2]/tbody/tr")
 
             resultBooks = result[1:-1]
             bookInfoDict = {}
@@ -123,42 +149,66 @@ def searchOpac(isbn, passkey, proxy):
             detailText = r.text
             pattern = r"验证码"
             finder = re.compile(pattern)
-            passkey = finder.findall(detailText)
-            if(len(passkey) == 0):
-                pattern = r"\'calis.subject\'\,\'.*\'"
-                finderSubject = re.compile(pattern)
-                subjectString = finderSubject.findall(detailText)[0].replace("'", "")
-
-                subjectString = subjectString.split(",")[1]
-
-                if ("--" in subjectString):
-                    subjectList = subjectString.replace(" ", "").replace("--", ",").    split(",")
-                    bookInfoDict["classify"] = subjectList
-                else:
-                    bookInfoDict["classify"] = [subjectString]
-
-                patternNo = r"\'bath.localClassification\'\,\'.*\'"
-                finderCLCNo = re.compile(patternNo)
-                CLCNoString = finderCLCNo.findall(detailText)[0].replace("'", "")
-                CLCNoString = CLCNoString.split(",")[1]
-
-                if CLCNoString.find("*"):
-                    CLCNoString = CLCNoString.replace("*", "")
-                if CLCNoString.find(" "):
-                    CLCNoString = CLCNoString.replace(" ", ". ")
-                bookInfoDict["CLCNo"] = CLCNoString
-
-                isbn_new = list(isbn)
-                isbn_new.insert(3, "-")
-                isbn_new.insert(5, "-")
-                isbn_new.insert(10, "-")
-                isbn_new.insert(15, "-")
-                bookInfoDict["ISBN"] = "".join(isbn_new)
-                print(bookInfoDict)
-
-                return bookInfoDict
+            passkeyTag = finder.findall(detailText)
+            if(len(passkeyTag) == 0):
+                return getDetails(detailText, bookInfoDict, isbn)
             else:
-                print("Passkey find change Passkey")
-                return 503
+                print("Passkey find")
+                flag = True
+                while(flag):
+                    r = s.get(passKeyUrl)
+                    passkey = processPassKey(r.content)
+                    checkPayload["passkey"] = passkey
+                    headers_details = {
+                        "user-agent": uaString,
+                        "Referer": detailUrl + detailArg
+                    }
+                    r = s.post(checkUrl, data=checkPayload, headers=headers_details)
+                    # print(r.text)
+                    passkeyLoadText = r.text
+                    pattern = r"当前检索条件"
+                    finder = re.compile(pattern)
+                    resultTag = finder.findall(passkeyLoadText)
+                    if(len(resultTag) == 1):
+                        print("find book")
+                        flag = False
+                        return getDetails(passkeyLoadText, bookInfoDict, isbn)
+                    else:
+                        print("passkey error try again")
+                        time.sleep(random.randint(3, 15))
         else:
             return 404
+
+def getDetails(detailText, bookInfoDict, isbn):
+    pattern = r"\'calis.subject\'\,\'.*\'"
+    finderSubject = re.compile(pattern)
+    subjectString = finderSubject.findall(detailText)[0].replace("'", "")
+
+    subjectString = subjectString.split(",")[1]
+    
+    if ("--" in subjectString):
+        subjectList = subjectString.replace(" ", "").replace("--", ",").    split(",")
+        bookInfoDict["Classify"] = subjectList
+    else:
+        bookInfoDict["Classify"] = [subjectString]
+
+    patternNo = r"\'bath.localClassification\'\,\'.*\'"
+    finderCLCNo = re.compile(patternNo)
+    CLCNoString = finderCLCNo.findall(detailText)[0].replace("'", "")
+    CLCNoString = CLCNoString.split(",")[1]
+
+    if CLCNoString.find("*"):
+        CLCNoString = CLCNoString.replace("*", "")
+    if CLCNoString.find(" "):
+        CLCNoString = CLCNoString.replace(" ", ". ")
+    bookInfoDict["CLCNo"] = CLCNoString
+
+    isbn_new = list(isbn)
+    isbn_new.insert(3, "-")
+    isbn_new.insert(5, "-")
+    isbn_new.insert(10, "-")
+    isbn_new.insert(15, "-")
+    bookInfoDict["ISBN"] = "".join(isbn_new)
+    print(bookInfoDict)
+
+    return bookInfoDict
