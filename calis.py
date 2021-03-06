@@ -134,7 +134,7 @@ def searchOpac(isbn, passkey, proxy):
             bookInfoDict["Press"] = bookInfo[2]
             bookInfoDict["Site"] = pressText.split(":")[0]
             bookInfoDict["Year"] = pressText.split(",")[1]
-
+            bookInfoDict["Cover"] = ""
             for eachLink in detailLink:
                 if("javascript:doShowDetails" in eachLink):
                     detailArg = eachLink[25:-1].replace("'","").split(",")[4]
@@ -187,7 +187,7 @@ def getDetails(detailText, bookInfoDict, isbn):
     subjectString = subjectString.split(",")[1]
     
     if ("--" in subjectString):
-        subjectList = subjectString.replace(" ", "").replace("--", ",").    split(",")
+        subjectList = subjectString.replace(" ", "").replace("--", ",").split(",")
         bookInfoDict["Classify"] = subjectList
     else:
         bookInfoDict["Classify"] = [subjectString]
