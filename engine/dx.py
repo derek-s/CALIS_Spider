@@ -5,7 +5,7 @@
 # DATE: 2021/03/06
 # TIME: 19:39:37
 
-# DESCRIPTION: duxiu
+# DESCRIPTION: duxiu 已废弃
 
 import re
 import time
