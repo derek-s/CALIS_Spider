@@ -4,8 +4,12 @@ import random
 import argparse
 
 from db import collection
-from calis import searchOpac
-from dx import searchDuxiu
+
+from engine.calis import searchOpac
+from engine.dx import searchDuxiu
+from engine.xmu import searchXMU
+from engine.sclib import searchSCLib
+
 from ic import covertISBN
 
 parser = argparse.ArgumentParser(description="Books MetaData Spider")
@@ -35,7 +39,7 @@ if __name__ == "__main__":
             isbn_new = covertISBN(item[0])
             count = collection.find({"ISBN": isbn_new})
             if(count.count() == 0):
-                result = searchOpac(item[0], "cmhbmv245irg", "")
+                result = searchOpac(item[0], "cmhbmv245irg")
                 # result = searchOpac(item[0], "aiezkqxk6tjx", proxies)
                 # result = searchOpac(item[0], "jxdfyqxku8hq", proxies)
 
@@ -50,14 +54,14 @@ if __name__ == "__main__":
                     time.sleep(random.randint(3, 15))
             else:
                 print("in base")
-    elif(args.target == "dx"):
+    elif(args.target == "xmu"):
         for item in reader:
             isbn_new = covertISBN(item[0])
             count = collection.find({"ISBN": isbn_new})
             if(count.count() == 0):
-                result = searchDuxiu(isbn_new, "")
+                result = searchXMU(isbn_new)
                 if type(result) != int:
-                    print("find write db")
+                    print("find, write db")
                     print(result)
                     collection.insert(result)
                     time.sleep(random.randint(3, 15))
@@ -67,6 +71,25 @@ if __name__ == "__main__":
                     time.sleep(random.randint(3, 15))
             else:
                 print("in base")
+    
+    elif(args.target == "sclib"):
+        for item in reader:
+            isbn_new = covertISBN(item[0])
+            count = collection.find({"ISBN": isbn_new})
+            if(count.count() == 0):
+                result = searchSCLib(isbn_new)
+                if type(result) != int:
+                    print("find, write db")
+                    print(result)
+                    collection.insert(result)
+                    time.sleep(random.randint(3, 15))
+                if result == 404:
+                    print("notFound")
+                    notFoundFile.write(item[0] + "\n")
+                    time.sleep(random.randint(3, 15))
+            else:
+                print("in base")
+
 
     else:
         print("you need chose website")
