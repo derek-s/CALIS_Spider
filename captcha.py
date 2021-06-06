@@ -5,7 +5,7 @@
 # Author: Derek.S(derekseli@outlook.com)
 # Date: 2020-11-25 09:05:17
 # LastEditors: Derek.S(derekseli@outlook.com)
-# LastEditTime: 2020-12-02 17:47:19
+# LastEditTime: 2021-06-06 09:29:51
 
 from PIL import Image, ImageDraw
 from io import BytesIO
@@ -37,8 +37,8 @@ def processPassKey(content):
     " -l opac"
     " -psm 6"
     " ")))
-    print(code)
-    return code
+    print(str(code)[0:4])
+    return int(str(code)[0:4])
 
 def getBinTable(threshold=140):
     table = []
