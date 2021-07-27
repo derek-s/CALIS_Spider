@@ -6,9 +6,10 @@ import argparse
 from db import collection
 
 from engine.calis import searchOpac
-from engine.dx import searchDuxiu
+# from engine.dx import searchDuxiu
 from engine.xmu import searchXMU
 from engine.sclib import searchSCLib
+from engine.nlc import searchNLC
 
 from ic import covertISBN
 
@@ -78,6 +79,23 @@ if __name__ == "__main__":
             count = collection.find({"ISBN": isbn_new})
             if(count.count() == 0):
                 result = searchSCLib(isbn_new)
+                if type(result) != int:
+                    print("find, write db")
+                    print(result)
+                    collection.insert(result)
+                    time.sleep(random.randint(3, 15))
+                if result == 404:
+                    print("notFound")
+                    notFoundFile.write(item[0] + "\n")
+                    time.sleep(random.randint(3, 15))
+            else:
+                print("in base")
+    elif(args.target == "nlc"):
+        for item in reader:
+            isbn_new = covertISBN(item[0])
+            count = collection.find({"ISBN": isbn_new})
+            if(count.count() == 0):
+                result = searchNLC(isbn_new)
                 if type(result) != int:
                     print("find, write db")
                     print(result)
