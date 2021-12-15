@@ -5,7 +5,7 @@
 # Author: Derek.S(derekseli@outlook.com)
 # Date: 2020-11-25 07:49:18
 # LastEditors: Derek.S(derekseli@outlook.com)
-# LastEditTime: 2020-11-25 08:19:54
+# LastEditTime: 2021-12-15 11:10:50
 
 import random
 import string
@@ -30,16 +30,16 @@ osVer = {
 }
 browserVer = {
     "Chrome": [
-        "80",
-        "87"
+        "87",
+        "96"
     ],
     "Firefox": [
-        "82",
-        "84"
+        "90",
+        "95"
     ],
     "Edge": [
-        "84",
-        "87"
+        "87",
+        "96"
     ]
 }
 

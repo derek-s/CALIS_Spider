@@ -1,3 +1,13 @@
+#!/usr/bin/env python
+# -*- coding:UTF-8 -*-
+# AUTHOR: Derek Song
+# FILE: calis.py
+# DATE: 2021/06/04
+# TIME: 09:41:51
+
+# DESCRIPTION: opac
+
+
 import requests
 import re
 import time
@@ -13,7 +23,7 @@ detailUrl = ""
 checkUrl = ""
 passKeyUrl = ""
 
-def searchOpac(isbn, passkey, proxy):
+def searchOpac(isbn, passkey, proxy=None):
 
     uaString = UAMaker().random_PC()
 
@@ -97,7 +107,7 @@ def searchOpac(isbn, passkey, proxy):
     }
 
     s = requests.session()
-    if(len(proxy) != 0):
+    if(proxy):
         s.proxies = proxy
     s.get(calisUrl)
 
@@ -130,11 +140,11 @@ def searchOpac(isbn, passkey, proxy):
 
             bookInfoDict["Title"] = bookInfo[0].strip().split("/")[0]
             bookInfoDict["Author"] = bookInfo[1]
-
             bookInfoDict["Press"] = bookInfo[2]
             bookInfoDict["Site"] = pressText.split(":")[0]
             bookInfoDict["Year"] = pressText.split(",")[1]
             bookInfoDict["Cover"] = ""
+
             for eachLink in detailLink:
                 if("javascript:doShowDetails" in eachLink):
                     detailArg = eachLink[25:-1].replace("'","").split(",")[4]
@@ -194,13 +204,16 @@ def getDetails(detailText, bookInfoDict, isbn):
 
     patternNo = r"\'bath.localClassification\'\,\'.*\'"
     finderCLCNo = re.compile(patternNo)
-    CLCNoString = finderCLCNo.findall(detailText)[0].replace("'", "")
-    CLCNoString = CLCNoString.split(",")[1]
-
-    if CLCNoString.find("*"):
-        CLCNoString = CLCNoString.replace("*", "")
-    if CLCNoString.find(" "):
-        CLCNoString = CLCNoString.replace(" ", ". ")
+    if(len(finderCLCNo.findall(detailText)) != 0):
+        CLCNoString = finderCLCNo.findall(detailText)[0].replace("'", "")
+        CLCNoString = CLCNoString.split(",")[1]
+        if CLCNoString.find("*"):
+            CLCNoString = CLCNoString.replace("*", "")
+        if CLCNoString.find(" "):
+            CLCNoString = CLCNoString.replace(" ", ". ")        
+    else:
+        CLCNoString = ""
+    
     bookInfoDict["CLCNo"] = CLCNoString
 
     isbn_new = list(isbn)
