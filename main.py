@@ -2,6 +2,7 @@ import csv
 import time
 import random
 import argparse
+import datetime
 
 from db import collection
 
@@ -26,6 +27,13 @@ proxies = {
     "https": "http://%(user)s:%(pwd)s@%(proxy)s/" % {"user": username, "pwd": password, "proxy": proxy_ip}
 }
 
+def getDate(): 
+    """
+        get now date
+    """
+    today = datetime.date.today().strftime("%Y-%m-%d")
+    return today
+
 
 
 if __name__ == "__main__":
@@ -46,6 +54,7 @@ if __name__ == "__main__":
 
                 if type(result) != int:
                     print("find write db")
+                    result["addTime"] = getDate()
                     print(result)
                     collection.insert(result)
                     time.sleep(random.randint(3, 15))
@@ -64,6 +73,7 @@ if __name__ == "__main__":
                 result = searchSCLib(isbn_new)
                 if type(result) != int:
                     print("find, write db")
+                    result["addTime"] = getDate()
                     print(result)
                     collection.insert(result)
                     time.sleep(random.randint(3, 15))
@@ -81,6 +91,7 @@ if __name__ == "__main__":
                 result = searchNLC(isbn_new)
                 if type(result) != int:
                     print("find, write db")
+                    result["addTime"] = getDate()
                     print(result)
                     collection.insert(result)
                     time.sleep(random.randint(3, 15))
