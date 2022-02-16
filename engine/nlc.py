@@ -101,6 +101,7 @@ def searchNLC(isbn, proxy=None):
         
         bookInfoDict["Cover"] = ""
         bookInfoDict["Price"] = ""
+        bookInfoDict["Rating"] = ""
 
         # print(bookInfoDict)
         

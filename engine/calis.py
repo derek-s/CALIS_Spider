@@ -144,6 +144,8 @@ def searchOpac(isbn, passkey, proxy=None):
             bookInfoDict["Site"] = pressText.split(":")[0]
             bookInfoDict["Year"] = pressText.split(",")[1]
             bookInfoDict["Cover"] = ""
+            bookInfoDict["Price"] = ""
+            bookInfoDict["Rating"] = ""
 
             for eachLink in detailLink:
                 if("javascript:doShowDetails" in eachLink):

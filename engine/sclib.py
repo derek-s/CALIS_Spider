@@ -106,6 +106,8 @@ def searchSCLib(isbn, proxy=None):
             # downloadCover(s, CoverUrl, CoverName)
             
             bookInfoDict["Cover"] = ""
+            bookInfoDict["Price"] = ""
+            bookInfoDict["Rating"] = ""
             # print(bookInfoDict)
             return bookInfoDict
         else:
