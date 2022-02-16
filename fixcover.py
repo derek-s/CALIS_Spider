@@ -53,8 +53,13 @@ def dban(isbn):
     imgName = isbn + ".jpg"
     soup = bas(datailPage, "html5lib")
 
-    # Book Cover
-    imgUrl = soup.select("div#mainpic > a > img")[0].get("src")
+    try:
+        imgUrl = soup.select("div#mainpic > a > img")[0].get("src")
+    except IndexError:
+        exceptPage = soup.select("div#exception")
+        if(len(exceptPage) != 0):
+            print("Not found")
+            return "", "0.0", "0.0"
     
     # Book Price 2021-06-26
     infoSpan = soup.select("div#info > span")
@@ -80,9 +85,20 @@ def dban(isbn):
             price = float(oriPrice) * exRateCNY
     else:
         price = 0
-    print(price)
+    print("price：" + str(price))
     price = format(float(price), ".2f")
-    return downloadCover(s, imgUrl, imgName), price
+
+    # Book Rating
+    try:
+        rating = soup.select_one("div#interest_sectl > div.rating_wrap > div.rating_self > strong").get_text().replace(" ", "")
+        if(rating == ""):
+            rating = "0.0"
+        print("DRating: " + str(rating))
+    except:
+        rating = "0.0"
+
+    return downloadCover(s, imgUrl, imgName), price, rating
+    # return "", price, rating
     # return price, imgUrl
     
 
@@ -108,8 +124,8 @@ if __name__ == "__main__":
     for x in finder:
         isbnResult = x["ISBN"].strip()
         print(isbnResult)
-        coverFileName, price = dban(isbnResult)
+        coverFileName, price, rating = dban(isbnResult)
         id = {"_id": x["_id"]}
-        coverData = {"$set": {"Cover": coverFileName, "ISBN": isbnResult, "Price": price}}
+        coverData = {"$set": {"Cover": coverFileName, "ISBN": isbnResult, "Price": price, "Rating": rating}}
         collection.update_one(id, coverData)
         time.sleep(random.randint(3, 15))
