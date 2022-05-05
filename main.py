@@ -46,8 +46,8 @@ if __name__ == "__main__":
         # reader = ['978-7-80236-780-7']
         for item in reader:
             isbn_new = covertISBN(item[0])
-            count = collection.find({"ISBN": isbn_new})
-            if(count.count() == 0):
+            count = collection.count_documents({"ISBN": isbn_new})
+            if(count == 0):
                 result = searchOpac(item[0], "cmhbmv245irg")
                 # result = searchOpac(item[0], "aiezkqxk6tjx", proxies)
                 # result = searchOpac(item[0], "jxdfyqxku8hq", proxies)
@@ -56,7 +56,7 @@ if __name__ == "__main__":
                     print("find write db")
                     result["addTime"] = getDate()
                     print(result)
-                    collection.insert(result)
+                    collection.insert_one(result)
                     time.sleep(random.randint(3, 15))
                 if result == 404:
                     print("notFound")
@@ -68,14 +68,14 @@ if __name__ == "__main__":
     elif(args.target == "sclib"):
         for item in reader:
             isbn_new = covertISBN(item[0])
-            count = collection.find({"ISBN": isbn_new})
-            if(count.count() == 0):
+            count = collection.count_documents({"ISBN": isbn_new})
+            if(count == 0):
                 result = searchSCLib(isbn_new)
                 if type(result) != int:
                     print("find, write db")
                     result["addTime"] = getDate()
                     print(result)
-                    collection.insert(result)
+                    collection.insert_one(result)
                     time.sleep(random.randint(3, 15))
                 if result == 404:
                     print("notFound")
@@ -86,14 +86,14 @@ if __name__ == "__main__":
     elif(args.target == "nlc"):
         for item in reader:
             isbn_new = covertISBN(item[0])
-            count = collection.find({"ISBN": isbn_new})
-            if(count.count() == 0):
+            count = collection.count_documents({"ISBN": isbn_new})
+            if(count == 0):
                 result = searchNLC(isbn_new)
                 if type(result) != int:
                     print("find, write db")
                     result["addTime"] = getDate()
                     print(result)
-                    collection.insert(result)
+                    collection.insert_one(result)
                     time.sleep(random.randint(3, 15))
                 if result == 404:
                     print("notFound")
