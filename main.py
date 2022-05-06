@@ -7,8 +7,6 @@ import datetime
 from db import collection
 
 from engine.calis import searchOpac
-# from engine.dx import searchDuxiu
-# from engine.xmu import searchXMU
 from engine.sclib import searchSCLib
 from engine.nlc import searchNLC
 
