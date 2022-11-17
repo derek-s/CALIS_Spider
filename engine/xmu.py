@@ -5,7 +5,7 @@
 # DATE: 2021/06/04
 # TIME: 09:41:27
 
-# DESCRIPTION: xmu library
+# DESCRIPTION: xmu library 已废弃
 
 import requests
 import re
