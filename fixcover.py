@@ -196,16 +196,6 @@ if __name__ == "__main__":
         collection.update_one(id, coverData)
         time.sleep(random.randint(3, 15))
 
-    # finder = collection.find({"Price": ""})
-    # print(finder)
-    # for x in finder:
-    #     print(x)
-    #     isbnResult = x["ISBN"].strip()
-    #     print(isbnResult)
-    #     name = dban(isbnResult)
-    #     id = {"_id": x["_id"]}
-    #     coverData = {"$set": {"Price": name, "ISBN": isbnResult}}
-    #     collection.update_one(id, coverData)
-    #     time.sleep(random.randint(3, 15))
+
     
 
