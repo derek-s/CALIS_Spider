@@ -50,6 +50,9 @@ def searchNLC(isbn, proxy=None):
     soup = bas(searchPageText, "html5lib")
     table = soup.select("div#details2")
     
+    series = ""
+    synopsis = ""
+
     if(len(table) != 0):
 
         tr = table[0].find_all("tr")
@@ -84,6 +87,10 @@ def searchNLC(isbn, proxy=None):
                     classify.append(tmp)
             elif(x.find("td").get_text().strip() == "中图分类号"):
                 CLCNo = x.find_all("td")[1].get_text().strip()
+            elif(x.find("td").get_text().strip() == "丛编项"):
+                series = x.find_all("td")[1].get_text().strip()
+            elif(x.find("td").get_text().strip() == "内容提要"):
+                synopsis = x.find_all("td")[1].get_text().strip()
             
         bookInfoDict["Title"] = title
         bookInfoDict["Author"] = author
@@ -93,6 +100,8 @@ def searchNLC(isbn, proxy=None):
         bookInfoDict["Classify"] = classify
         bookInfoDict["CLCNo"] = CLCNo
         bookInfoDict["ISBN"] = isbn
+        bookInfoDict["Series"] = series
+        bookInfoDict["Synopsis"] = synopsis
 
         # CoverSrc = soup.select("div#bigcover > img")[0].get("src")
         # CoverUrl = scLibUrl + CoverSrc
