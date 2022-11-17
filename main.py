@@ -25,6 +25,7 @@ proxies = {
     "https": "http://%(user)s:%(pwd)s@%(proxy)s/" % {"user": username, "pwd": password, "proxy": proxy_ip}
 }
 
+
 def getDate(): 
     """
         get now date
@@ -33,17 +34,15 @@ def getDate():
     return today
 
 
-
 if __name__ == "__main__":
 
     csvFile = open("isbn.csv", "r")
     notFoundFile = open("notfound.csv", "a+")
     reader = csv.reader(csvFile)
-
     if(args.target == "calis"):
         # reader = ['978-7-80236-780-7']
         for item in reader:
-            isbn_new = covertISBN(item[0])
+            isbn_new = item[0]
             count = collection.count_documents({"ISBN": isbn_new})
             if(count == 0):
                 result = searchOpac(item[0], "cmhbmv245irg")
@@ -51,7 +50,7 @@ if __name__ == "__main__":
                 # result = searchOpac(item[0], "jxdfyqxku8hq", proxies)
 
                 if type(result) != int:
-                    print("find write db")
+                    print("find, write db")
                     result["addTime"] = getDate()
                     print(result)
                     collection.insert_one(result)
@@ -61,11 +60,11 @@ if __name__ == "__main__":
                     notFoundFile.write(item[0] + "\n")
                     time.sleep(random.randint(3, 15))
             else:
-                print("in base")
-    
+                print("in base") 
     elif(args.target == "sclib"):
+        
         for item in reader:
-            isbn_new = covertISBN(item[0])
+            isbn_new = item[0]
             count = collection.count_documents({"ISBN": isbn_new})
             if(count == 0):
                 result = searchSCLib(isbn_new)
@@ -83,7 +82,8 @@ if __name__ == "__main__":
                 print("in base")
     elif(args.target == "nlc"):
         for item in reader:
-            isbn_new = covertISBN(item[0])
+            
+            isbn_new = item[0]
             count = collection.count_documents({"ISBN": isbn_new})
             if(count == 0):
                 result = searchNLC(isbn_new)
