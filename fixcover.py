@@ -9,6 +9,7 @@
 
 import time
 import random
+import os.path
 
 import requests
 
@@ -39,6 +40,7 @@ def exChangeRate(currency):
 
 
 def dban(isbn):
+	series = ""
     url = "" + isbn.replace("-", "")
 
     uaString = UAMaker().random_PC()
@@ -53,6 +55,7 @@ def dban(isbn):
     imgName = isbn + ".jpg"
     soup = bas(datailPage, "html5lib")
 
+    # Book Cover
     try:
         imgUrl = soup.select("div#mainpic > a > img")[0].get("src")
     except IndexError:
@@ -64,9 +67,12 @@ def dban(isbn):
     # Book Price 2021-06-26
     infoSpan = soup.select("div#info > span")
     si = -1
+    ti = -1
     for spanindex, info in enumerate(infoSpan):
         if(info.text == "定价:"):
             si = spanindex
+        if(info.text == "丛书:"):
+            ti = spanindex
     if(si != -1):
         price = (soup.select("div#info > span")[si].next_sibling).strip()
         if(isNumber(price)):
@@ -85,8 +91,16 @@ def dban(isbn):
             price = float(oriPrice) * exRateCNY
     else:
         price = 0
+
+    # Book Series 2022-11-15
+    if(ti != -1):
+        series = (soup.select("div#info > span")[ti].next_sibling.next_sibling).get_text().strip()
+        print(series)
+    
     print("price：" + str(price))
     price = format(float(price), ".2f")
+
+
 
     # Book Rating
     try:
@@ -97,7 +111,22 @@ def dban(isbn):
     except:
         rating = "0.0"
 
-    return downloadCover(s, imgUrl, imgName), price, rating
+    # Book Synopsis
+    synopsis = ""
+    try:
+        synopsis = soup.select_one("div#link-report > div > div").get_text().strip()
+        print(synopsis)
+    except:
+        synopsis = ""
+    if(synopsis == ""):
+        try:
+            synopsis = soup.select_one("div#link-report > span.all.hidden > div > div").get_text().strip()
+            print(synopsis)
+        except:
+            synopsis = ""
+
+
+    return downloadCover(s, imgUrl, imgName), price, rating, series, synopsis
     # return "", price, rating
     # return price, imgUrl
     
@@ -105,27 +134,78 @@ def dban(isbn):
 
 def downloadCover(s, url, imgName, proxy=None):
 
-    uaString = UAMaker().random_PC()
-    headers = {
-        "user-agent": uaString
-    }
-
     imgName = imgName.replace("-", "")
-    if(proxy):
-        img = s.get(url, headers=headers, proxies=proxy)
-    else:
-        img = s.get(url, headers=headers)
-    open("cover/"+imgName, "wb").write(img.content)
 
+    if(not os.path.isfile("cover/"+imgName)):
+        
+        uaString = UAMaker().random_PC()
+        headers = {
+            "user-agent": uaString
+        }
+
+        
+        if(proxy):
+            img = s.get(url, headers=headers, proxies=proxy)
+        else:
+            img = s.get(url, headers=headers)
+        open("cover/"+imgName, "wb").write(img.content)
+    else:
+        print(imgName + " is exits")
     return imgName
 
 if __name__ == "__main__":
+
+
     finder = collection.find({"Cover": ""})
     for x in finder:
         isbnResult = x["ISBN"].strip()
         print(isbnResult)
-        coverFileName, price, rating = dban(isbnResult)
+        coverFileName, price, rating, series, synopsis= dban(isbnResult)
         id = {"_id": x["_id"]}
-        coverData = {"$set": {"Cover": coverFileName, "ISBN": isbnResult, "Price": price, "Rating": rating}}
+        if(series != "" and x["Series"] == ""):
+            coverData = {"$set": {
+                "Cover": coverFileName, 
+                "ISBN": isbnResult, 
+                "Price": price, 
+                "Rating": rating, 
+                "Series": series
+                }}
+        elif(series == "" and x["Series"] == ""):
+            coverData = {"$set": {
+                "Cover": coverFileName, 
+                "ISBN": isbnResult, 
+                "Price": price, 
+                "Rating": rating, 
+                "Series": ""
+                }}
+        else:
+            coverData = {"$set": {
+                "Cover": coverFileName, 
+                "ISBN": isbnResult, 
+                "Price": price, 
+                "Rating": rating
+                }}
+        if(synopsis != ""):
+            coverData1 = {"$set": {
+                "Synopsis": synopsis
+                }}
+            #print(coverData1)
+            collection.update_one(id, coverData1)
+        
+        #print(coverData)
         collection.update_one(id, coverData)
         time.sleep(random.randint(3, 15))
+
+    # finder = collection.find({"Price": ""})
+    # print(finder)
+    # for x in finder:
+    #     print(x)
+    #     isbnResult = x["ISBN"].strip()
+    #     print(isbnResult)
+    #     name = dban(isbnResult)
+    #     id = {"_id": x["_id"]}
+    #     coverData = {"$set": {"Price": name, "ISBN": isbnResult}}
+    #     collection.update_one(id, coverData)
+    #     time.sleep(random.randint(3, 15))
+    
+
