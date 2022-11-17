@@ -24,6 +24,7 @@ searchUrlEnd = ""
 def searchSCLib(isbn, proxy=None):
     
     bookInfoDict = {}
+    series = ""
 
     sessionStr = str(math.ceil(random.random()*1000000000))
 
@@ -61,7 +62,7 @@ def searchSCLib(isbn, proxy=None):
             tr = table[0].find_all("tr")
             for x in tr:
                 if(x.find("td").get_text().strip() == "ISBN"):
-                    resultISBN = x.find_all("td")[1].get_text().split(":")[0].strip()
+                    resultISBN = x.find_all("td")[1].get_text().split(":")[0].strip().replace("-", "")
                     if(isbn != resultISBN):
                         isbnNo = isbn
                     else:
@@ -90,6 +91,12 @@ def searchSCLib(isbn, proxy=None):
                         classify.append(tmp)
                 elif(x.find("td").get_text().strip() == "分类号"):
                     CLCNo = x.find_all("td")[1].get_text().strip()
+                elif(x.find("td").get_text().strip() == "丛编项"):
+                    series = x.find_all("td")[1].get_text().strip()
+                elif(x.find("td").get_text().strip() == "提要"):
+                    synopsis = x.find_all("td")[1].get_text().strip()
+                elif(x.find("td").get_text().strip() == "摘要"):
+                    synopsis = x.find_all("td")[1].get_text().strip()
                 
             bookInfoDict["Title"] = title
             bookInfoDict["Author"] = author
@@ -99,6 +106,8 @@ def searchSCLib(isbn, proxy=None):
             bookInfoDict["Classify"] = classify
             bookInfoDict["CLCNo"] = CLCNo
             bookInfoDict["ISBN"] = isbnNo
+            bookInfoDict["Series"] = series
+            bookInfoDict["Synopsis"] = synopsis
 
             # CoverSrc = soup.select("div#uic_cover > img")[0].get("src")
             # CoverUrl = scLibUrl + CoverSrc
@@ -108,6 +117,7 @@ def searchSCLib(isbn, proxy=None):
             bookInfoDict["Cover"] = ""
             bookInfoDict["Price"] = ""
             bookInfoDict["Rating"] = ""
+            
             # print(bookInfoDict)
             return bookInfoDict
         else:
