@@ -2,8 +2,7 @@
 # -*- coding:UTF-8 -*-
 # AUTHOR: Derek Song
 # FILE: sclib.py
-# DATE: 2021/06/04
-# TIME: 11:20:22
+# DATE: 2023/05/27
 
 # DESCRIPTION: sclib
 
@@ -17,16 +16,18 @@ from ua import UAMaker
 from ic import covertISBN
 
 scLibUrl = ""
-frnUrl = ""
 searchUrlHead = ""
 searchUrlEnd = ""
+
+detailUrlHead = ""
+detailUrlMid = ""
+detailUrlMidA = ""
+detailUrlEnd = ""
 
 def searchSCLib(isbn, proxy=None):
     
     bookInfoDict = {}
     series = ""
-
-    sessionStr = str(math.ceil(random.random()*1000000000))
 
     uaString = UAMaker().random_PC()
     headers = {
@@ -36,104 +37,82 @@ def searchSCLib(isbn, proxy=None):
     if(proxy):
         s.proxies = proxy
     
-    indexPage = s.get(frnUrl + sessionStr, headers=headers).content
-    indexPageText = str(indexPage, "utf-8")
+    searchURL = scLibUrl + searchUrlHead + isbn + searchUrlEnd
+
+    searchResult = s.get(searchURL, headers=headers).text
+
+    soup = bas(searchResult, "html5lib")
     
-    soup = bas(indexPageText, "html5lib")
-    tmp = soup.select("div#indexpage > form")
-    actionUrl = tmp[0].get("action")
+    notResArea = soup.select_one(".notResArea")
 
-    jointSearchUrl = actionUrl + searchUrlHead + isbn + searchUrlEnd
-    searchPage = s.get(jointSearchUrl, headers=headers).content
+    if(notResArea == None):
 
-    searchPageText = str(searchPage, "utf-8")
+        libBookLi = soup.select_one(".libBookUl")
+        
+        detailA = libBookLi.select_one("div.rankLiIn > div.rankInCon.clearfix > div.overHide > a")
 
-    soup = bas(searchPageText, "html5lib")
-    table = soup.select("table.items")
-    if(len(table) != 0):
-        if(len(table[0].find_all("div")) != 0):
-            detailUrl = table[0].find_all("div")[0].find("a").get("href")
-            detailPage = s.get(detailUrl).content
+        href = detailA["href"]
 
-            detailPageText = str(detailPage, "utf-8")
+        bookDetailID = href.split("(")[-1].split(",")[0]
 
-            soup = bas(detailPageText, "html5lib")
-            table = soup.select("div#details2")
-            tr = table[0].find_all("tr")
-            for x in tr:
-                if(x.find("td").get_text().strip() == "ISBN"):
-                    resultISBN = x.find_all("td")[1].get_text().split(":")[0].strip().replace("-", "")
-                    if(isbn != resultISBN):
-                        isbnNo = isbn
-                    else:
-                        isbnNo = resultISBN
-                elif(x.find("td").get_text().strip() == "题名"):
-                    title = x.find_all("td")[1].get_text().split("/")[0].strip()
-                    title = "".join(title.split())
-                    author = x.find_all("td")[1].get_text().split("/")[1].strip()
-                    author = "".join(author.split())
-                elif(x.find("td").get_text().strip() == "出版发行"):
-                    press = x.find_all("td")[1].get_text().split(":")[1].strip().split(",")[0]
-                    press = "".join(press.split())
-                    site = x.find_all("td")[1].get_text().split(":")[0].strip()
-                    site = "".join(site.split())
-                    year = x.find_all("td")[1].get_text().split(",")[1].strip()
-                    year = "".join(year.split())
-                elif(x.find("td").get_text().strip() == "主题"):
-                    classify = []
-                    if("-" in x.find_all("td")[1].get_text()):
-                        for subject in x.find_all("td")[1].get_text().split("-"):
-                            subject = "".join(subject.split())
-                            classify.append(subject.strip())
-                    else:
-                        tmp = x.find_all("td")[1].get_text()
-                        tmp = "".join(tmp.split())
-                        classify.append(tmp)
-                elif(x.find("td").get_text().strip() == "分类号"):
-                    CLCNo = x.find_all("td")[1].get_text().strip()
-                elif(x.find("td").get_text().strip() == "丛编项"):
-                    series = x.find_all("td")[1].get_text().strip()
-                elif(x.find("td").get_text().strip() == "提要"):
-                    synopsis = x.find_all("td")[1].get_text().strip()
-                elif(x.find("td").get_text().strip() == "摘要"):
-                    synopsis = x.find_all("td")[1].get_text().strip()
-                
-            bookInfoDict["Title"] = title
-            bookInfoDict["Author"] = author
-            bookInfoDict["Press"] = press
-            bookInfoDict["Site"] = site
-            bookInfoDict["Year"] = year
-            bookInfoDict["Classify"] = classify
-            bookInfoDict["CLCNo"] = CLCNo
-            bookInfoDict["ISBN"] = isbnNo
-            bookInfoDict["Series"] = series
-            bookInfoDict["Synopsis"] = synopsis
+        detailUrl = scLibUrl + detailUrlHead + bookDetailID + detailUrlMid + isbn + detailUrlMidA + isbn + detailUrlEnd
 
-            # CoverSrc = soup.select("div#uic_cover > img")[0].get("src")
-            # CoverUrl = scLibUrl + CoverSrc
-            # CoverName = str(isbn) + ".jpg"
-            # downloadCover(s, CoverUrl, CoverName)
-            
-            bookInfoDict["Cover"] = ""
-            bookInfoDict["Price"] = ""
-            bookInfoDict["Rating"] = ""
-            
-            # print(bookInfoDict)
-            return bookInfoDict
-        else:
-            return 404
+        detailPage = s.get(detailUrl, headers=headers).text
+
+        soup = bas(detailPage, "html5lib")
+
+        bkTxt = soup.select_one(".bkTxt")
+
+        title = bkTxt.select_one(".bkTxtTit").get_text().strip()
+
+        bkTxtLeftLi = bkTxt.select("div.bkTxtLeft > ul > li")
+        bkTxtRightLi = bkTxt.select("div.bkTxtRight > ul > li")
+        detailArray = []
+        classify = []
+        for x in bkTxtLeftLi:
+            detailArray.append(x.get_text().strip().split())
+        
+        for y in bkTxtRightLi:
+            detailArray.append(y.get_text().strip().split())
+        
+        for z in detailArray:
+
+            bField = z[0]
+
+            if(bField == "ISBN："):
+                isbnNo = z[1]
+            if(bField == "出版发行："):
+                site = z[1]
+                press = z[2].split("，")[0]
+                year = z[3]
+            if(bField == "主要责任者："):
+                author = z[1]
+            if(bField == "主题词："):
+                for m in z:
+                    if(m != "主题词："):
+                        classify.append(m)
+            if(bField == "中图分类法："):
+                CLCNo = z[1]
+        
+        classify = list(set(classify))
+
+        
+        bookInfoDict["Title"] = title
+        bookInfoDict["Author"] = author
+        bookInfoDict["Press"] = press
+        bookInfoDict["Site"] = site
+        bookInfoDict["Year"] = year
+        bookInfoDict["Classify"] = classify
+        bookInfoDict["CLCNo"] = CLCNo
+        bookInfoDict["ISBN"] = isbnNo
+        bookInfoDict["Series"] = series
+        bookInfoDict["Synopsis"] = ""
+
+
+        bookInfoDict["Cover"] = ""
+        bookInfoDict["Price"] = ""
+        bookInfoDict["Rating"] = ""
+        
+        return bookInfoDict
     else:
         return 404
-
-
-def downloadCover(s, url, imgName):
-
-    uaString = UAMaker().random_PC()
-    headers = {
-        "user-agent": uaString
-    }
-
-    imgName = imgName.replace("-", "")
-
-    img = s.get(url, headers)
-    open("cover/"+imgName, "wb").write(img.content)
