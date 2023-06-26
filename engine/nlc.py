@@ -60,13 +60,16 @@ def searchNLC(isbn, proxy=None):
             if(x.find("td").get_text().strip() == "题名与责任"):
                 title = x.find_all("td")[1].get_text().split("/")[0].strip()
                 title = "".join(title.split())
-                author = x.find_all("td")[1].get_text().split("/")[1].strip()
-                author = "".join(author.split())
+                try:
+                    author = x.find_all("td")[1].get_text().split("/")[1].strip()
+                    author = "".join(author.split())
 
-                title = title.replace("[专著]", "")
+                    title = title.replace("[专著]", "")
 
-                author = author.replace("[", "")
-                author = author.replace("]", "")
+                    author = author.replace("[", "")
+                    author = author.replace("]", "")
+                except:
+                    author = ""
 
             elif(x.find("td").get_text().strip() == "出版项"):
                 press = x.find_all("td")[1].get_text().split(":")[1].strip().split(",")[0]
