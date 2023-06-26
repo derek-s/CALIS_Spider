@@ -79,8 +79,6 @@ def searchSCLib(isbn, proxy=None):
 
             bField = z[0]
 
-            if(bField == "ISBN："):
-                isbnNo = z[1]
             if(bField == "出版发行："):
                 site = z[1]
                 press = z[2].split("，")[0]
@@ -104,7 +102,7 @@ def searchSCLib(isbn, proxy=None):
         bookInfoDict["Year"] = year
         bookInfoDict["Classify"] = classify
         bookInfoDict["CLCNo"] = CLCNo
-        bookInfoDict["ISBN"] = isbnNo
+        bookInfoDict["ISBN"] = isbn
         bookInfoDict["Series"] = series
         bookInfoDict["Synopsis"] = ""
 
