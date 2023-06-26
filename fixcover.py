@@ -98,18 +98,20 @@ def dban(isbn):
         print(series)
     
     print("price：" + str(price))
-    price = format(float(price), ".2f")
+    price = float(format(float(price), ".2f"))
 
 
 
     # Book Rating
+    rating_f = 0.0
     try:
         rating = soup.select_one("div#interest_sectl > div.rating_wrap > div.rating_self > strong").get_text().replace(" ", "")
         if(rating == ""):
-            rating = "0.0"
+            rating = 0.0
         print("DRating: " + str(rating))
+        rating_f = float(rating)
     except:
-        rating = "0.0"
+        rating = 0.0
 
     # Book Synopsis
     synopsis = ""
@@ -126,7 +128,7 @@ def dban(isbn):
             synopsis = ""
 
 
-    return downloadCover(s, imgUrl, imgName), price, rating, series, synopsis
+    return downloadCover(s, imgUrl, imgName), price, rating_f, series, synopsis
     # return "", price, rating
     # return price, imgUrl
     
