@@ -11,7 +11,6 @@ import requests
 
 from bs4 import BeautifulSoup as bas
 from ua import UAMaker
-from ic import covertISBN
 
 shLibUrl = ""
 searchUrlHead = ""
