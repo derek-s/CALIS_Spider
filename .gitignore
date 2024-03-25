@@ -8,3 +8,4 @@ __pycache__/ua.cpython-36.pyc
 isbn.csv
 training/opac.box.bak
 training/opac.opac.exp0.box
+*.pyc
