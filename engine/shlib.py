@@ -8,9 +8,6 @@
 # DESCRIPTION:
 
 import requests
-import math
-import random
-import os
 
 from bs4 import BeautifulSoup as bas
 from ua import UAMaker
