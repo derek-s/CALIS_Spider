@@ -9,6 +9,9 @@ from db import collection
 from engine.calis import searchOpac
 from engine.sclib import searchSCLib
 from engine.nlc import searchNLC
+from engine.shlib import searchSHLib
+from engine.zslib import searchZSLib
+
 
 from ic import covertISBN
 
@@ -32,7 +35,6 @@ def getDate():
     """
     today = datetime.date.today().strftime("%Y-%m-%d")
     return today
-
 
 if __name__ == "__main__":
 
@@ -87,6 +89,44 @@ if __name__ == "__main__":
             count = collection.count_documents({"ISBN": isbn_new})
             if(count == 0):
                 result = searchNLC(isbn_new)
+                if type(result) != int:
+                    print("find, write db")
+                    result["addTime"] = getDate()
+                    print(result)
+                    collection.insert_one(result)
+                    time.sleep(random.randint(3, 15))
+                if result == 404:
+                    print("notFound")
+                    notFoundFile.write(item[0] + "\n")
+                    time.sleep(random.randint(3, 15))
+            else:
+                print("in base")
+    elif(args.target == "shlib"):
+        for item in reader:
+            
+            isbn_new = item[0]
+            count = collection.count_documents({"ISBN": isbn_new})
+            if(count == 0):
+                result = searchSHLib(isbn_new)
+                if type(result) != int:
+                    print("find, write db")
+                    result["addTime"] = getDate()
+                    print(result)
+                    collection.insert_one(result)
+                    time.sleep(random.randint(3, 15))
+                if result == 404:
+                    print("notFound")
+                    notFoundFile.write(item[0] + "\n")
+                    time.sleep(random.randint(3, 15))
+            else:
+                print("in base")
+    elif(args.target == "zslib"):
+        for item in reader:
+            
+            isbn_new = item[0]
+            count = collection.count_documents({"ISBN": isbn_new})
+            if(count == 0):
+                result = searchZSLib(isbn_new)
                 if type(result) != int:
                     print("find, write db")
                     result["addTime"] = getDate()
