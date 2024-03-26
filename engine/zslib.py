@@ -76,9 +76,7 @@ def searchZSLib(isbn, proxy=None):
             
             if(td1 == "丛编项"):
                 series = "".join(x.find_all("td")[1].select_one("a").text.split())
-
-                print(series)
-    
+                    
         classify = list(set(classify))
 
         bookInfoDict["Title"] = title
