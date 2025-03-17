@@ -23,7 +23,7 @@ searchUrlHead = ""
 searchUrlEnd = ""
 
 def searchNLC(isbn, proxy=None):
-    
+    # search books
     bookInfoDict = {}
 
     sessionStr = str(math.ceil(random.random()*1000000000))
@@ -124,7 +124,7 @@ def searchNLC(isbn, proxy=None):
 
 
 def downloadCover(s, url, imgName):
-
+    # download cover img
     uaString = UAMaker().random_PC()
     headers = {
         "user-agent": uaString
